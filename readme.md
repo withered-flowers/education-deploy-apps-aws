@@ -117,7 +117,11 @@ Selanjutnya kita akan mencoba untuk install nodejs pada EC2. Langkah-langkahnya 
 
 1. Membuka halaman link berikut: https://github.com/nodesource/distributions/blob/master/README.md#using-ubuntu-1
 1. Masih pada terminal (ssh) ubuntu, ketikkan perintah yang ada pada link di atas pada terminal ubuntu dan jalankan.
-1. Setelah selesai, maka secara otomatis kita sudah berhasil menginstall NodeJS. mudah bukan?
+1. Setelah selesai, maka secara otomatis kita sudah berhasil menginstall NodeJS. mudah bukan? apakah sudah selesai? belum !
+1. Install global package yang dibutuhkan untuk menjalankan aplikasi. nama packagenya adalah `pm2` (https://www.npmjs.com/package/pm2)
+1. PM2 ini adalah sebuah package yang akan digunakan untuk menjalankan aplikasi berbasis nodejs kita di dalam EC2. PM2 ini akan menjalankan aplikasi kita secara `daemon` / sebagai service. Jadi kita tidak perlu lagi menjalankan aplikasi kita secara manual setiap kali kita ingin menjalankannya.
+
+Untuk menggunakan PM2-nya, akan dijelaskan lebih lanjut pada langkah di bawah nanti yah !
 
 #### Langkah 4 - Masukkan kode yang dibutuhkan ke dalam EC2
 
@@ -128,6 +132,9 @@ Selanjutnya kita akan mengclone kode yang dimiliki dari github ke dalam EC2. Lan
    git clone https://github.com/withered-flowers/education-deploy-apps-aws.git
    ```
 1. Cara di atas bisa dilakukan secara langsung **BILA MENGGUNAKAN REPOSITORY PUBLIK**, apabila menggunakan repository yang bersifat `private`, maka siapkan terlebih dahulu `Private Access Token` dari akun Github yang ingin diclone repositorynya.
-1.
+1. Untuk membuat `Private Access Token` dapat dilakukan dengan cara sebagai berikut:
+   - Buka halaman `Settings` pada akun Github
+   - Pilih `Developer settings` -> `Personal access tokens`
+   - Pada halaman ini akan diberikan tabel list `Personal access tokens` yang sudah dibuat. Klik `Generate new token`
 
 ### References

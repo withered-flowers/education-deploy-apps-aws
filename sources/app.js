@@ -14,6 +14,7 @@ app.get("/", (req, res) => {
   res.status(200).json({
     statusCode: 200,
     message: "echo OK",
+    environmentSecret: process.env.SECRET ?? "Secret not Provided",
   });
 });
 
