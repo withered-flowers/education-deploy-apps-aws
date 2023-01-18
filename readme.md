@@ -118,7 +118,10 @@ Selanjutnya kita akan mencoba untuk install nodejs pada EC2. Langkah-langkahnya 
 1. Membuka halaman link berikut: https://github.com/nodesource/distributions/blob/master/README.md#using-ubuntu-1
 1. Masih pada terminal (ssh) ubuntu, ketikkan perintah yang ada pada link di atas pada terminal ubuntu dan jalankan.
 1. Setelah selesai, maka secara otomatis kita sudah berhasil menginstall NodeJS. mudah bukan? apakah sudah selesai? belum !
-1. Install global package yang dibutuhkan untuk menjalankan aplikasi. nama packagenya adalah `pm2` (https://www.npmjs.com/package/pm2)
+1. Install global package yang dibutuhkan untuk menjalankan aplikasi. nama packagenya adalah `pm2` (https://www.npmjs.com/package/pm2). Instalasinya adalah dengan menggunakan perintah berikut:
+   ```bash
+   sudo npm install -g pm2
+   ```
 1. PM2 ini adalah sebuah package yang akan digunakan untuk menjalankan aplikasi berbasis nodejs kita di dalam EC2. PM2 ini akan menjalankan aplikasi kita secara `daemon` / sebagai service. Jadi kita tidak perlu lagi menjalankan aplikasi kita secara manual setiap kali kita ingin menjalankannya.
 
 Untuk menggunakan PM2-nya, akan dijelaskan lebih lanjut pada langkah di bawah nanti yah !
@@ -136,5 +139,14 @@ Selanjutnya kita akan mengclone kode yang dimiliki dari github ke dalam EC2. Lan
    - Buka halaman `Settings` pada akun Github
    - Pilih `Developer settings` -> `Personal access tokens`
    - Pada halaman ini akan diberikan tabel list `Personal access tokens` yang sudah dibuat. Klik `Generate new token`
+
+#### Langkah 5 - Inisialisasi dan Menggunakan PM2 pada Aplikasi
+
+- pm2 init simple
+- ganti environment variable pada pm2
+  - vim ecosystem.config.js
+  - ganti env "NODE_ENV" menjadi production
+
+#### Langkah 6 - Menggunakan DNS untuk mengakses Aplikasi
 
 ### References
