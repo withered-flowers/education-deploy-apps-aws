@@ -4,16 +4,27 @@
 
 - [Persyaratan Dasar](#persyaratan-dasar)
 - [Perkenalan](#perkenalan)
-- [References](#references)
+- [How To](#how-to)
+  - [Langkah 1 - Membuat EC2 Instance](#langkah-1---membuat-ec2-instance)
+  - [Langkah 2 - Masuk ke dalam EC2](#langkah-2---masuk-ke-dalam-ec2)
+  - [Langkah 3 - Instalasi NodeJS](#langkah-3---instalasi-nodejs)
+  - [Langkah 4 - Masukkan kode yang dibutuhkan ke dalam EC2](#langkah-4---masukkan-kode-yang-dibutuhkan-ke-dalam-ec2)
+  - [Langkah 5 - Inisialisasi dan Menggunakan PM2 pada Aplikasi](#langkah-5---inisialisasi-dan-menggunakan-pm2-pada-aplikasi)
+  - [Langkah 6 (Optional) - Update Aplikasi](#langkah-6-optional---update-aplikasi)
+  - [Langkah 7 - Menggunakan Sub-Domain untuk mengakses Aplikasi](#langkah-7---menggunakan-sub-domain-untuk-mengakses-aplikasi)
 
 ### Persyaratan Dasar
 
+- Mengerti perintah dasar pada Linux
 - Memiliki akun AWS
+- Memiliki sebuah domain yang siap digunakan
 - Sudah menginstall nodejs dan memiliki akun Github
 
 ### Disclaimer
 
-Pada pembelajaran ini sudah disediakan sebuah kode sederhana yang sudah disiapkan untuk di-deploy.
+Pada pembelajaran ini sudah disediakan sebuah kode sederhana yang sudah disiapkan untuk di-deploy. Kode ini dibuat dalam `nodejs`.
+
+Pada pembelajaran ini domain akan disetting dengan menggunakan `Cloudflare`
 
 ### Perkenalan
 
@@ -139,14 +150,125 @@ Selanjutnya kita akan mengclone kode yang dimiliki dari github ke dalam EC2. Lan
    - Buka halaman `Settings` pada akun Github
    - Pilih `Developer settings` -> `Personal access tokens`
    - Pada halaman ini akan diberikan tabel list `Personal access tokens` yang sudah dibuat. Klik `Generate new token`
+1. Selanjutnya setelah mendapatkan `Personal access token`, kita akan menggunakannya untuk mengclone repository yang bersifat `private` dengan menggunakan perintah `git clone <repository_private>`.
+1. Pada saat diminta memasukkan credential, supply dengan username dari akun Github dan password yang dimasukkan adalah `Personal Access Token` yang sudah dibuat sebelumnya.
+1. Sampai tahap ini artinya kita sudah berhasil mengclone repository dan memasukkan kode yang dibutuhkan ke dalam EC2.
 
 #### Langkah 5 - Inisialisasi dan Menggunakan PM2 pada Aplikasi
 
-- pm2 init simple
-- ganti environment variable pada pm2
-  - vim ecosystem.config.js
-  - ganti env "NODE_ENV" menjadi production
+Pada langkah ini kita akan mencoba untuk menginisialisasi dan menggunakan PM2 pada aplikasi yang sudah kita clone sebelumnya. Langkah-langkahnya adalah sebagai berikut:
 
-#### Langkah 6 - Menggunakan DNS untuk mengakses Aplikasi
+1. Masih pada terminal EC2, `cd` ke dalam folder repository yang sudah di clone sebelumnya dan masuk ke dalam folder yang berisi `package.json`. (Apabila menggunakan repository dari `education-deploy-apps-aws` maka folder yang berisi `package.json` adalah `sources`)
+1. Untuk melakukan inisialisasi `pm2` maka kita akan menggunakan perintah berikut:
+   ```bash
+   pm2 init simple
+   ```
+   Setelah menggunakan perintah ini maka akan terbentuk sebuah file baru bernama `ecosystem.config.js` yang berisi konfigurasi untuk menjalankan aplikasi kita menggunakan PM2.
+1. (**STEP INI BELUM TENTU DIBUTUHKAN OLEH SEMUA APLIKASI**) Karena aplikasi yang digunakan dalam pembelajaran ini menggunakan nodejs `type: module`, maka untuk file `ecosystem.config.js` ini harus diubah menjadi `ecosystem.config.cjs`.
 
-### References
+   Hal ini bisa dilakukan dengan menggunakan perintah:
+
+   ```bash
+   mv ecosystem.config.js ecosystem.config.cjs
+   ```
+
+1. Buka `ecosystem.config.(c)js` dengan menggunakan editor yang ada di Ubuntu EC2 (`vim` atau `nano`), kemudian tambahan sebuah property `env` untuk mengubah environment nodejs menjadi production seperti berikut:
+
+   ```js
+   module.exports = {
+     apps: [
+       {
+         name: "app1",
+         script: "./app.js",
+         // --- Tambahkan baris ini
+         env: {
+           // Dibutuhkan untuk nodejs menganggap bahwa
+           // kode berjalan pada production
+           NODE_ENV: "production",
+           // Dibutuhkan pada aplikasi app.js untuk
+           // set port aplikasi
+           PORT: 80,
+         },
+         // --- sampai di sini
+       },
+     ],
+   };
+   ```
+
+1. Selanjutnya kita akan mencoba untuk menjalankan aplikasi yang telah dibuat. Tapi... masih ada satu `environment variable` (`env`) lagi bernama `SECRET` yang dibutuhkan dalam aplikasi ini. Hanya saja karena ini adalah sesuatu yang bersifat "rahasia", tidak boleh dituliskan ke dalam `ecosystem.config.(c)js`.
+
+   Sehingga satu satunya cara meng-set `env` ini adalah sambil menjalankan aplikasi dengan `pm2`
+
+1. Untuk bisa menjalankan aplikasi ini dengan `pm2` dan meng-set `env` bernama `SECRET` adalah dengan cara berikut:
+
+   ```bash
+   sudo SECRET=haloinirahasiasekali pm2 start ecosystem.config.cjs
+   ```
+
+   Apabila sudah berhasil maka akan muncul output seperti berikut:
+
+   ```
+   [PM2] Spawning PM2 daemon with pm2_home=/root/.pm2
+   [PM2] PM2 Successfully daemonized
+   [PM2] Starting /home/ubuntu/education-deploy-apps-aws/sources/app.js in fork_mode (1 instance)
+   [PM2] Done.
+   ```
+
+1. Dan sampai pada tahap ini artinya kita sudah berhasil untuk mendeploy aplikasi kita pada AWS EC2 dengan baik !
+
+   Untuk bisa membuka aplikasi yang sudah kita deploy, kita bisa menggunakan `public IP` dari EC2 yang kita miliki.
+
+   Pada browser gunakan protokol `http` dan masukkan `public IP` dari EC2 yang kita miliki. Contoh: `http://18.100.100.100`
+
+   _voila_... aplikasi kita sudah bisa diakses dari browser !
+
+#### Langkah 6 (Optional) - Update Aplikasi
+
+Langkah ini akan digunakan apabila terdapat error pada code kita dan kita harus update aplikasi yang dimiliki:
+
+1. Cek terlebih dahulu apakah pm2-nya sudah berjalan atau belum dengan menggunakan perintah: `sudo pm2 list`
+1. Apabila pada list belum ada apps yang berjalan, maka kita bisa menjalankan kode yang terbaru dengan menggunakan perintah:
+   ```bash
+   sudo SECRET=haloinirahasiasekali pm2 start ecosystem.config.cjs
+   ```
+1. Apabila pada list sudah ada apps yang berjalan, maka kita cukup melakukan restart apps dengan menggunakan perintah `sudo pm2 restart app1`
+
+   Dimana `app1` adalah nama dari apps yang berjalan (lihat pada `name` yang ditunjukkan pada perintah `sudo pm2 list`)
+
+1. Apabila yang ingin diupdate adalah `env`-nya, maka bisa menggunakan perintah berikut:
+
+   ```bash
+   sudo SECRET=bergantisecret pm2 restart app1 --update-env
+   ```
+
+1. Apabila ingin mematikan dan menghapus aplikasi yang berjalan, maka bisa menggunakan perintah berikut:
+   ```bash
+   sudo pm2 stop app1 && sudo pm2 del app1
+   ```
+
+#### Langkah 7 - Menggunakan Sub-Domain untuk mengakses Aplikasi
+
+Sampai tahap ini artinya kita sudah berhasil untuk mendeploy aplikasi kita pada AWS EC2 dengan baik ! Namun, untuk mengakses aplikasi kita masih menggunakan IP Address dari EC2.
+
+Untuk mengakses aplikasi kita dengan menggunakan sub-domain, maka kita perlu melakukan beberapa langkah berikut:
+
+1. Login dengan akun `Cloudflare` yang dimiliki dan sudah memiliki domain
+1. Pilih domain yang akan digunakan untuk mengakses aplikasi kita
+1. Pilih tab `DNS` pada sidebar
+1. Pilih tombol `Add Record`
+1. Untuk menempelkan sub-domain yang bisa diakses dari domain yang dimiliki maka kita akan menambahkan record `A` pada DNS dengan mengisi pada konfigurasi recordnya sebagai berikut:
+   - Type: `A`
+   - Name: `NamaSubDomainYangDiinginkan`
+   - IPV4 Address: `Public IP` dari EC2 yang kita miliki
+   - Proxy Status: `Proxied`
+1. Selanjutnya tekan tombol `Save` untuk menyimpan konfigurasi record yang telah dibuat
+1. Tunggu beberapa saat (1-2 menit) kemudian _voila_... aplikasi kita sudah bisa diakses dari browser dengan menggunakan sub-domain yang dimiliki !
+
+WARNING:
+
+Hati-hati dengan menggunakan `Type` DNS Record. Ada 2 yang umumnya digunakan yaitu `A` dan `CNAME`.
+
+- `A` digunakan untuk mengarahkan sub-domain ke IP Address
+- `CNAME` digunakan untuk mengarahkan sub-domain ke domain lain
+
+Sekian pembelajaran untuk deploy aplikasi Node.js ke AWS EC2. Semoga bermanfaat !
